@@ -1,0 +1,32 @@
+{
+  "name": "exec-ws",
+  "version": "1.0.0",
+  "description": "Convert the path to a relative path for the workspace and execute the command within the workspace.",
+  "main": "index.js",
+  "bin": {
+    "exec-ws": "./dist/src/index.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidera-design/exec-ws.git"
+  },
+  "keywords": [
+    "monorepo",
+    "workspace",
+    "pre-commit",
+    "dev-tools"
+  ],
+  "author": "Hitoshi Hoshino",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sidera-design/exec-ws/issues"
+  },
+  "homepage": "https://github.com/sidera-design/exec-ws#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.15"
+  }
+}
