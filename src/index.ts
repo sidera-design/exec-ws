@@ -7,7 +7,6 @@ import { spawn } from "child_process";
 import { Command } from 'commander';
 import { parse } from 'shell-quote';
 
-
 const projectRoot = process.cwd();
 
 
@@ -71,8 +70,8 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
  * @returns An array of command components
  */
 const parseCommand = (input: string) => {
-  const parsed = parse(input);
-  return parsed.filter((part): part is string => typeof part === 'string');
+    const parsed = parse(input);
+    return parsed.filter((part): part is string => typeof part === 'string');
 }
 
 /**
@@ -158,9 +157,11 @@ function getWorkspaces(packageJson: any) {
 
 // Command line interface
 const program = new Command();
+const pkg = require(path.resolve(__dirname, "../package.json"));
 
 program
     .name('exec-ws')
+    .version(pkg.version)
     .option('-c, --command <string>', 'Specify command')
     .allowUnknownOption(true)
     .allowExcessArguments(true)
