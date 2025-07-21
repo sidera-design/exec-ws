@@ -38,7 +38,7 @@ cd {workspaseB root}
 
 # Setup
 
-When executing with pre-commit, you can configure the environment settings for Python tools with the following definitions.
+When executing linter and formatter with pre-commit, you can configure the following settings to coexist with Python tools.
 
 Example: .pre-commit-config.yaml
 ```yaml
