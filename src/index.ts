@@ -3,7 +3,7 @@
 import path from "path";
 import fs, { stat } from "fs";
 import * as glob from "glob";
-import { spawnSync } from "child_process";
+import { spawn } from "child_process";
 import { Command } from 'commander';
 import { parse } from 'shell-quote';
 
@@ -11,7 +11,7 @@ import { parse } from 'shell-quote';
 const projectRoot = process.cwd();
 
 
-const handleCommand = (args: string[], options: { command?: string }) => {
+const handleCommand = async (args: string[], options: { command?: string }) => {
 
     if (args.length === 0) {
         process.exit(1);
@@ -33,31 +33,35 @@ const handleCommand = (args: string[], options: { command?: string }) => {
     console.log(`Original command: ${command} ${allArgs.join(" ")}`);
 
     let resultCode = 0;
-    for (const workspacePath of workspacePaths) {
+    await Promise.all(workspacePaths.map(async (workspacePath) => {
         // Skip if the command args don't contain the workspace path
         if (!changeArgs.some(arg => arg === workspacePath || arg.startsWith(`${workspacePath}/`))) {
             console.log(`>> Workspace [${workspacePath}] skips command.`);
-            continue;
+            return;
         }
 
         // Build the command arguments for this workspace
-        const resolvedArgs: string[] = resolveArgs(changeArgs, workspacePaths, workspacePath);
+        const resolvedArgs = resolveArgs(changeArgs, workspacePaths, workspacePath);
         const execArgs = [...fixedArgs, ...resolvedArgs];
-        const cwd = path.resolve(projectRoot, workspacePath)
+        const cwd = path.resolve(projectRoot, workspacePath);
 
-        // run the command in that workspace
-        console.log(`>> Workspace [${workspacePath}] calls: ${command} ${execArgs.join(" ")}`)
-        const result = spawnSync(command, execArgs, { stdio: "inherit", cwd })
-        if (result.error) {
-            console.error(` Error [${workspacePath}]: ${result.error.message}`);
-            resultCode = result.status || 1;
-            continue;
+        console.log(`>> Workspace [${workspacePath}] calls: ${command} ${execArgs.join(" ")}`);
+
+        try {
+            const exitCode = await new Promise<number>((resolve, reject) => {
+                const child = spawn(command, execArgs, { stdio: "inherit", cwd });
+                child.on("error", reject);
+                child.on("close", code => resolve(code ?? 1));
+            });
+            if (exitCode !== 0) {
+                console.error(` Failed code [${workspacePath}]: ${exitCode}`);
+                resultCode = Math.max(resultCode, exitCode);
+            }
+        } catch (error: any) {
+            console.error(` Error [${workspacePath}]: ${error.message}`);
+            resultCode = Math.max(resultCode, 1);
         }
-        if (result.status !== 0) {
-            console.error(` Failed code [${workspacePath}]: ${result.status || 0}`);
-            resultCode = result.status || 1;
-        }
-    }
+    }));
     return process.exit(resultCode);
 }
 
