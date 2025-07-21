@@ -24,10 +24,10 @@ const handleCommand = (args: string[], options: { command?: string }) => {
     console.log(`Workspaces: ${workspacePaths.join(", ")}`)
 
     // Set command and arguments
-    const commandArgs = options.command ? parse(options.command) : [];
-    const command = (commandArgs[0] || args[0]).toString();
-    const fixedArgs = commandArgs.slice(1).map(arg => arg.toString());
-    const changeArgs = args.slice(1);
+    const commandArgs = options.command ? parseCommand(options.command) : [];
+    const command = (options.command ? commandArgs[0] : args[0]);
+    const fixedArgs = commandArgs.slice(1).map(arg => arg);
+    const changeArgs = options.command ? args : args.slice(1);
 
     const allArgs = [...fixedArgs, ...changeArgs];
     console.log(`Original command: ${command} ${allArgs.join(" ")}`);
@@ -43,23 +43,33 @@ const handleCommand = (args: string[], options: { command?: string }) => {
         // Build the command arguments for this workspace
         const resolvedArgs: string[] = resolveArgs(changeArgs, workspacePaths, workspacePath);
         const execArgs = [...fixedArgs, ...resolvedArgs];
-        // run the command in that workspace
         const cwd = path.resolve(projectRoot, workspacePath)
+
+        // run the command in that workspace
         console.log(`>> Workspace [${workspacePath}] calls: ${command} ${execArgs.join(" ")}`)
         const result = spawnSync(command, execArgs, { stdio: "inherit", cwd })
         if (result.error) {
-            console.error(` Error: ${result.error.message}`);
+            console.error(` Error [${workspacePath}]: ${result.error.message}`);
             resultCode = result.status || 1;
             continue;
         }
         if (result.status !== 0) {
-            console.error(` Failed code: ${result.status || 0}`);
+            console.error(` Failed code [${workspacePath}]: ${result.status || 0}`);
             resultCode = result.status || 1;
         }
     }
     return process.exit(resultCode);
 }
 
+/**
+ * Parse a command string into its components
+ * @param input The command string to parse
+ * @returns An array of command components
+ */
+const parseCommand = (input: string) => {
+  const parsed = parse(input);
+  return parsed.filter((part): part is string => typeof part === 'string');
+}
 
 /**
  * Load the root package.json

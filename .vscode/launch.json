@@ -16,11 +16,27 @@
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/src/index.ts",
             "sourceMaps": true,
-            // "args": [
-            //     "ls", "-la", "app/"
-            // ]
             "args": [
-                "echo", "aaa", "app/"
+                "ls", "-la", "app/"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch -c in Mock-Project",
+            "cwd": "${workspaceFolder}/mock-project",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/src/index.ts",
+            "sourceMaps": true,
+            "args": [
+                "-c", "ls -la", "app/"
             ]
         }
     ]
