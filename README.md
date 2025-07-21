@@ -76,7 +76,7 @@ repos:
 
 
 # Condition
-This tool assumes that the workspace is set `package.json` as follows in the project root.
+This tool assumes that workspaces are set `package.json` as follows in the project root.
 
 ```json
 {
