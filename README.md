@@ -73,3 +73,20 @@ repos:
         files: '^frontend/.*\.(tsx?|jsx?|css|json|html)$'
         description: "Run Node.js formatter"
 ```
+
+
+# Condition
+This tool assumes that the workspace is set `package.json` as follows in the project root.
+
+```json
+{
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "packages/*"
+    ],
+    "devDependencies": {
+        "exec-ws": "^0.1.0"
+    }
+}
+```
