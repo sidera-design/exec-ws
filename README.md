@@ -70,7 +70,7 @@ repos:
         name: Prettier (frontend)
         entry: npx exec-ws npx prettier --write
         language: system
-        files: '^frontend/.*\.(tsx?|jsx?|css|json|html)$'
+        files: '\.(tsx?|jsx?|css|json|html)$'
         description: "Run Node.js formatter"
 ```
 
