@@ -40,7 +40,7 @@ cd {workspaseB root}
 
 When executing linter and formatter with pre-commit, you can configure the following settings to coexist with Python tools.
 
-Example: .pre-commit-config.yaml
+Example: `.pre-commit-config.yaml`
 ```yaml
 repos:
   - repo: local
@@ -76,7 +76,10 @@ repos:
 
 
 # Condition
-This tool assumes that workspaces are set `package.json` as follows in the project root.
+
+This tool assumes that the "workspaces" is set `package.json` in the project root.
+
+Example: `package.json`
 
 ```json
 {
