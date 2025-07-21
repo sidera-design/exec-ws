@@ -13,10 +13,14 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/src/index.ts",
             "sourceMaps": true,
+            // "args": [
+            //     "ls", "-la", "app/"
+            // ]
             "args": [
-                "ls", "-la", "app/"
+                "echo", "aaa", "app/"
             ]
         }
     ]
