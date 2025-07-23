@@ -64,7 +64,6 @@ repos:
         entry: npx exec-ws npx eslint --fix
         language: system
         files: '\.(tsx?|jsx?)$'
-        exclude: '^[^/]+$'        
         description: "Run Node.js linter"
 
       - id: ts-fmt
@@ -72,8 +71,9 @@ repos:
         entry: npx exec-ws npx prettier --write
         language: system
         files: '\.(tsx?|jsx?|css|json|html)$'
-        exclude: '^[^/]+$'
+        exclude: '^package-lock\.json$'
         description: "Run Node.js formatter"
+
 ```
 
 
