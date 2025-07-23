@@ -38,7 +38,7 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
     await Promise.all(Object.keys(assignedArgs).map(async (workspacePath) => {
         const workspaceName = workspacePath ? `Workspace:${workspacePath}` : "<Project Root>"
         // Skip if the command args don't contain the workspace path
-        if (assignedArgs[workspacePath].length === 0) {
+        if (assignedArgs[workspacePath] === undefined) {
             console.log(kleur.blue(`>> ${workspaceName} skips command.`));
             return;
         }
@@ -117,6 +117,7 @@ async function assignArgs(changeArgs: string[], workspacePaths: string[]) {
         ["", []]]
     );
 
+    let mimimumLength = 0;
     for (const arg of changeArgs) {
 
         // check if this arg looks like a path
@@ -126,6 +127,7 @@ async function assignArgs(changeArgs: string[], workspacePaths: string[]) {
             Object.values(commandArgs).forEach(args => {
                 args.push(arg);
             });
+            mimimumLength++;
             continue;
         }
 
@@ -139,7 +141,11 @@ async function assignArgs(changeArgs: string[], workspacePaths: string[]) {
         }) || "";
         commandArgs[belongWorkspace].push(path.relative(belongWorkspace, abs) || ".");
     }
-    return commandArgs;
+    const returnArgs: Record<string, string[] | undefined> = {};
+    for (const [workspace, args] of Object.entries(commandArgs)) {
+        returnArgs[workspace] = args.length <= mimimumLength ? undefined : args;
+    }
+    return returnArgs;
 }
 
 /**
