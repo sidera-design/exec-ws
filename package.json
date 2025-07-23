@@ -1,6 +1,6 @@
 {
   "name": "exec-ws",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Convert the path to a relative path for the workspace and execute the command within the workspace.",
   "main": "index.js",
   "bin": {
