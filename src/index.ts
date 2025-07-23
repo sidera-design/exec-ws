@@ -31,20 +31,22 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
     const allArgs = [...fixedArgs, ...changeArgs];
     console.log(`Original command: ${command} ${allArgs.join(" ")}`);
 
+    const assignedArgs = await assignArgs(changeArgs, workspacePaths);
+
     let resultCode = 0;
-    await Promise.all(workspacePaths.map(async (workspacePath) => {
+    await Promise.all(Object.keys(assignedArgs).map(async (workspacePath) => {
+        const workspaceName = workspacePath ? `Workspace:${workspacePath}` : "<Project Root>"
         // Skip if the command args don't contain the workspace path
-        if (!changeArgs.some(arg => arg === workspacePath || arg.startsWith(`${workspacePath}/`))) {
-            console.log(`>> Workspace [${workspacePath}] skips command.`);
+        if (assignedArgs[workspacePath].length === 0) {
+            console.log(`>> ${workspaceName} skips command.`);
             return;
         }
 
         // Build the command arguments for this workspace
-        const resolvedArgs = resolveArgs(changeArgs, workspacePaths, workspacePath);
-        const execArgs = [...fixedArgs, ...resolvedArgs];
+        const execArgs = [...fixedArgs, ...assignedArgs[workspacePath]];
         const cwd = path.resolve(projectRoot, workspacePath);
 
-        console.log(`>> Workspace [${workspacePath}] calls: ${command} ${execArgs.join(" ")}`);
+        console.log(`>> ${workspaceName} calls: ${command} ${execArgs.join(" ")}`);
 
         try {
             const exitCode = await new Promise<number>((resolve, reject) => {
@@ -65,8 +67,22 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
 }
 
 /**
+ * Async path existence check: returns true if file or directory exists, false on error or absence
+ * @param p - The path to check
+ * @returns A promise that resolves to true if the path exists, false otherwise
+ */
+const pathExists = async (p: string): Promise<boolean> => {
+    try {
+        await fs.promises.stat(p)
+        return true
+    } catch {
+        return false
+    }
+}
+
+/**
  * Parse a command string into its components
- * @param input The command string to parse
+ * @param input - The command string to parse
  * @returns An array of command components
  */
 const parseCommand = (input: string) => {
@@ -90,21 +106,25 @@ const loadPackageJson = () => {
 
 /**
  * Resolve command arguments to be relative to the workspace root
- * @param changeArgs The arguments to resolve
- * @param workspacePaths The paths of all workspaces
- * @param targetPath The target workspace path
+ * @param changeArgs - The arguments to resolve
+ * @param workspacePaths - The paths of all workspaces
  * @returns An array of resolved command arguments
  */
-function resolveArgs(changeArgs: string[], workspacePaths: string[], targetPath: string) {
-    const commandArgs: string[] = [];
-    const workspaceRoot = path.resolve(projectRoot, targetPath)
+async function assignArgs(changeArgs: string[], workspacePaths: string[]) {
+    const commandArgs: Record<string, string[]> = Object.fromEntries(
+        [...workspacePaths.map(ws => [ws, []]),
+        ["", []]]
+    );
 
     for (const arg of changeArgs) {
 
-        // detect if this looks like a path
-        const isPath = path.isAbsolute(arg) || arg.startsWith(".") || arg.includes(path.sep);
+        // check if this arg looks like a path
+        const isPath = path.isAbsolute(arg) || arg.startsWith(".") || arg.includes(path.sep) || await pathExists(arg);
         if (!isPath) {
-            commandArgs.push(arg);
+            // if args is not a path, push to all workspaces
+            Object.values(commandArgs).forEach(args => {
+                args.push(arg);
+            });
             continue;
         }
 
@@ -112,20 +132,11 @@ function resolveArgs(changeArgs: string[], workspacePaths: string[], targetPath:
         const abs = path.isAbsolute(arg) ? arg : path.resolve(projectRoot, arg);
 
         // skip if it's inside any other workspace
-        const otherRoots = workspacePaths
-            .filter(p => p !== targetPath)
-            .map(p => path.resolve(projectRoot, p));
-        if (otherRoots.some(root => abs === root || abs.startsWith(root + path.sep))) {
-            continue;
-        }
-
-        // if it's inside this workspace, make it relative
-        if (abs === workspaceRoot || abs.startsWith(workspaceRoot + path.sep)) {
-            commandArgs.push(path.relative(workspaceRoot, abs) || ".");
-        } else {
-            // otherwise leave it as given
-            commandArgs.push(arg);
-        }
+        const belongWorkspace = Object.keys(commandArgs).find(ws => {
+            const wsAbs = path.resolve(projectRoot, ws);
+            return wsAbs === abs || abs.startsWith(wsAbs + path.sep);
+        }) || "";
+        commandArgs[belongWorkspace].push(path.relative(belongWorkspace, abs) || ".");
     }
     return commandArgs;
 }

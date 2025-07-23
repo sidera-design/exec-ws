@@ -38,6 +38,25 @@
             "args": [
                 "-c", "ls -la", "app/"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch with root file",
+            "cwd": "${workspaceFolder}/mock-project",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/src/index.ts",
+            "sourceMaps": true,
+            "args": [
+                "-c", "ls -la", "app/", "package.json"
+            ]
         }
     ]
 }
