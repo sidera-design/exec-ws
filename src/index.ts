@@ -3,6 +3,7 @@
 import path from "path";
 import fs, { stat } from "fs";
 import * as glob from "glob";
+import kleur from 'kleur';
 import { spawn } from "child_process";
 import { Command } from 'commander';
 import { parse } from 'shell-quote';
@@ -20,7 +21,7 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
     const packageJson = loadPackageJson();
     const workspacePaths: string[] = getWorkspaces(packageJson);
 
-    console.log(`Workspaces: ${workspacePaths.join(", ")}`)
+    console.log(kleur.blue(`Workspaces: ${workspacePaths.join(", ")}`))
 
     // Set command and arguments
     const commandArgs = options.command ? parseCommand(options.command) : [];
@@ -29,7 +30,7 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
     const changeArgs = options.command ? args : args.slice(1);
 
     const allArgs = [...fixedArgs, ...changeArgs];
-    console.log(`Original command: ${command} ${allArgs.join(" ")}`);
+    console.log(kleur.yellow(`Original command: ${command} ${allArgs.join(" ")}`));
 
     const assignedArgs = await assignArgs(changeArgs, workspacePaths);
 
@@ -38,7 +39,7 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
         const workspaceName = workspacePath ? `Workspace:${workspacePath}` : "<Project Root>"
         // Skip if the command args don't contain the workspace path
         if (assignedArgs[workspacePath].length === 0) {
-            console.log(`>> ${workspaceName} skips command.`);
+            console.log(kleur.blue(`>> ${workspaceName} skips command.`));
             return;
         }
 
@@ -46,7 +47,7 @@ const handleCommand = async (args: string[], options: { command?: string }) => {
         const execArgs = [...fixedArgs, ...assignedArgs[workspacePath]];
         const cwd = path.resolve(projectRoot, workspacePath);
 
-        console.log(`>> ${workspaceName} calls: ${command} ${execArgs.join(" ")}`);
+        console.log(kleur.green(`>> ${workspaceName} calls: ${command} ${execArgs.join(" ")}`));
 
         try {
             const exitCode = await new Promise<number>((resolve, reject) => {

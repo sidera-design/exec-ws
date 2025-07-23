@@ -35,6 +35,7 @@
   "dependencies": {
     "commander": "^14.0.0",
     "glob": "^11.0.3",
+    "kleur": "^4.1.5",
     "shell-quote": "^1.8.3"
   }
 }
